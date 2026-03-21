@@ -59,8 +59,8 @@ export function Popup() {
             AT
           </div>
           <div>
-            <h1 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>AI Alert Triage</h1>
-            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Quick classification</p>
+            <h1 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>TriageFlow AI</h1>
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>AI-powered alert triage</p>
           </div>
         </div>
         <div className="flex items-center gap-2">

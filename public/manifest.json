@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "AI Alert Triage",
+  "name": "TriageFlow AI — Alert Triage & Incident Classifier",
+  "short_name": "TriageFlow AI",
   "version": "1.0.0",
-  "description": "AI-powered alert triage: priority classification (P0-P4), noise detection, incident creation, and escalation paths",
+  "description": "AI alert triage: classify priority (P0-P4), detect noise & automate escalation. Free DevOps Chrome extension for SREs.",
   "permissions": [
     "sidePanel",
     "activeTab",

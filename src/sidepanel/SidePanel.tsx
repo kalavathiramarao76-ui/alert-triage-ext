@@ -149,7 +149,7 @@ export function SidePanel() {
             <div className="w-7 h-7 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">
               AT
             </div>
-            <h1 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>AI Alert Triage</h1>
+            <h1 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>TriageFlow AI</h1>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
