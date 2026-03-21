@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from "react";
 import type { TriageResult, MessageType } from "../shared/types";
+import type { FavoriteItem } from "../shared/favorites";
 import { generateId, priorityBadge, copyToClipboard } from "../shared/utils";
 import { ThemeToggle } from "../ui/ThemeToggle";
+import { FavoriteButton } from "../ui/FavoriteButton";
 
 export function Popup() {
   const [alertText, setAlertText] = useState("");
@@ -123,6 +125,18 @@ export function Popup() {
                 NOISE
               </span>
             )}
+            <FavoriteButton
+              item={{
+                id: alertId,
+                type: "alert",
+                title: result.summary,
+                priority: result.priority,
+                category: result.category,
+                timestamp: Date.now(),
+                snippet: result.slackSummary,
+              } as FavoriteItem}
+              size="sm"
+            />
           </div>
 
           <p className="text-sm text-gray-200">{result.summary}</p>

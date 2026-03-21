@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import type { Alert, TriageResult, Incident, MessageType, Priority } from "../shared/types";
+import type { FavoriteItem } from "../shared/favorites";
+import { getFavorites, getFavoritesCount } from "../shared/favorites";
 import {
   generateId,
   priorityBadge,
@@ -8,8 +10,10 @@ import {
 } from "../shared/utils";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { OnboardingTour } from "../ui/OnboardingTour";
+import { CommandPalette, type PaletteCommand } from "../ui/CommandPalette";
+import { FavoriteButton } from "../ui/FavoriteButton";
 
-type Tab = "inbox" | "incidents";
+type Tab = "inbox" | "incidents" | "favorites";
 
 export function SidePanel() {
   const [activeTab, setActiveTab] = useState<Tab>("inbox");
@@ -18,6 +22,8 @@ export function SidePanel() {
   const [inputText, setInputText] = useState("");
   const [expandedAlert, setExpandedAlert] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [favCount, setFavCount] = useState(0);
+  const [favItems, setFavItems] = useState<FavoriteItem[]>([]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Listen for triage results
@@ -132,6 +138,111 @@ export function SidePanel() {
     setIncidents([]);
   };
 
+  // Load favorites count
+  const refreshFavorites = useCallback(async () => {
+    const count = await getFavoritesCount();
+    setFavCount(count);
+    if (activeTab === "favorites") {
+      const items = await getFavorites();
+      setFavItems(items);
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    refreshFavorites();
+  }, [refreshFavorites]);
+
+  // Command palette commands
+  const paletteCommands: PaletteCommand[] = [
+    {
+      id: "triage-alert",
+      label: "Triage Alert",
+      shortcut: "Ctrl+Enter",
+      icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+      action: () => {
+        setActiveTab("inbox");
+        setTimeout(() => inputRef.current?.focus(), 100);
+      },
+    },
+    {
+      id: "view-incidents",
+      label: "View Incidents",
+      icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>,
+      action: () => setActiveTab("incidents"),
+    },
+    {
+      id: "create-incident",
+      label: "Create Incident",
+      icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>,
+      action: () => {
+        const triaged = alerts.find((a) => a.status === "triaged" && a.triage);
+        if (triaged) createIncident(triaged);
+        else setActiveTab("inbox");
+      },
+    },
+    {
+      id: "view-favorites",
+      label: "View Favorites",
+      icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>,
+      action: () => {
+        setActiveTab("favorites");
+        refreshFavorites();
+      },
+    },
+    {
+      id: "toggle-theme",
+      label: "Toggle Theme",
+      icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>,
+      action: () => {
+        // Cycle theme: dark -> light -> system -> dark
+        const current = document.documentElement.getAttribute("data-theme") || "dark";
+        const next = current === "dark" ? "light" : current === "light" ? "dark" : "dark";
+        document.documentElement.setAttribute("data-theme", next);
+        document.documentElement.classList.toggle("dark", next === "dark");
+        document.documentElement.classList.toggle("light", next === "light");
+        localStorage.setItem("alert-triage-theme", next);
+        try { chrome.storage?.local?.set({ "alert-triage-theme": next }); } catch {}
+      },
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>,
+      action: () => {
+        // Placeholder for future settings panel
+        setActiveTab("inbox");
+      },
+    },
+    {
+      id: "pagerduty-mode",
+      label: "PagerDuty Mode",
+      icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>,
+      action: () => {
+        chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
+          if (tabs[0]?.url?.includes("pagerduty.com")) {
+            chrome.tabs.sendMessage(tabs[0].id!, { type: "ACTIVATE_TRIAGE_MODE" });
+          }
+        });
+      },
+    },
+    {
+      id: "slack-summary",
+      label: "Slack Summary",
+      icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#e879f9" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="8" y1="8" x2="12" y2="8"/><line x1="8" y1="16" x2="14" y2="16"/></svg>,
+      action: async () => {
+        const triaged = alerts.filter((a) => a.triage);
+        if (triaged.length > 0) {
+          const summary = triaged
+            .map((a) => a.triage!.slackSummary)
+            .join("\n\n");
+          await copyToClipboard(summary);
+          setCopiedId("slack-all");
+          setTimeout(() => setCopiedId(null), 2000);
+        }
+      },
+    },
+  ];
+
   const stats = {
     total: alerts.length,
     p0: alerts.filter((a) => a.triage?.priority === "P0").length,
@@ -142,6 +253,7 @@ export function SidePanel() {
   return (
     <div className="h-screen flex flex-col">
       <OnboardingTour />
+      <CommandPalette commands={paletteCommands} />
       {/* Header */}
       <div className="header-bar px-4 py-3">
         <div className="flex items-center justify-between mb-3">
@@ -183,19 +295,34 @@ export function SidePanel() {
 
         {/* Tabs */}
         <div className="flex gap-1 bg-gray-800 rounded-lg p-0.5">
-          {(["inbox", "incidents"] as Tab[]).map((tab) => (
+          {(["inbox", "incidents", "favorites"] as Tab[]).map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                setActiveTab(tab);
+                if (tab === "favorites") refreshFavorites();
+              }}
               className={`flex-1 text-xs py-1.5 rounded-md transition-colors capitalize ${
                 activeTab === tab
                   ? "bg-gray-700 text-white"
                   : "text-gray-400 hover:text-gray-300"
               }`}
             >
-              {tab}
-              {tab === "incidents" && incidents.length > 0 && (
-                <span className="ml-1 text-blue-400">({incidents.length})</span>
+              {tab === "favorites" ? (
+                <span className="flex items-center justify-center gap-1">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="#f59e0b" stroke="#f59e0b" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                  {tab}
+                  {favCount > 0 && (
+                    <span className="favorites-badge">{favCount}</span>
+                  )}
+                </span>
+              ) : (
+                <>
+                  {tab}
+                  {tab === "incidents" && incidents.length > 0 && (
+                    <span className="ml-1 text-blue-400">({incidents.length})</span>
+                  )}
+                </>
               )}
             </button>
           ))}
@@ -253,6 +380,7 @@ export function SidePanel() {
                     onCreateIncident={() => createIncident(alert)}
                     onCopy={(text) => handleCopy(text, alert.id)}
                     copied={copiedId === alert.id}
+                    onFavToggle={refreshFavorites}
                   />
                 ))}
               </div>
@@ -277,11 +405,70 @@ export function SidePanel() {
                   incident={inc}
                   onCopy={(text) => handleCopy(text, inc.id)}
                   copied={copiedId === inc.id}
+                  onFavToggle={refreshFavorites}
                 />
               ))
             )}
           </div>
         )}
+
+        {activeTab === "favorites" && (
+          <div className="p-4 space-y-3">
+            {favItems.length === 0 ? (
+              <div className="text-center py-12 text-gray-600">
+                <div className="text-3xl mb-2">&#x2B50;</div>
+                <p className="text-sm">No favorites yet</p>
+                <p className="text-xs mt-1">
+                  Star alerts and incidents to save them here
+                </p>
+              </div>
+            ) : (
+              favItems.map((fav) => (
+                <div key={fav.id} className="card">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap mb-1">
+                        {fav.priority && (
+                          <span className={`badge ${priorityBadge(fav.priority as Priority)}`}>
+                            {fav.priority}
+                          </span>
+                        )}
+                        {fav.category && (
+                          <span className="badge bg-gray-700/50 text-gray-300 border border-gray-600/30 text-[10px]">
+                            {fav.category}
+                          </span>
+                        )}
+                        <span className="badge bg-gray-700/50 text-gray-400 border border-gray-600/30 text-[10px] capitalize">
+                          {fav.type}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-200">{fav.title}</p>
+                      <p className="text-[10px] text-gray-600 mt-1">
+                        {timeAgo(fav.timestamp)}
+                      </p>
+                    </div>
+                    <FavoriteButton
+                      item={fav}
+                      onToggle={() => refreshFavorites()}
+                    />
+                  </div>
+                  {fav.snippet && (
+                    <pre className="text-[10px] text-gray-500 bg-gray-950 rounded p-2 mt-2 overflow-x-auto max-h-16 whitespace-pre-wrap">
+                      {fav.snippet}
+                    </pre>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Command palette hint */}
+      <div className="px-4 py-1.5 text-center border-t" style={{ borderColor: "var(--border-primary)" }}>
+        <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
+          <kbd className="cmd-palette-kbd-sm">Ctrl</kbd>+<kbd className="cmd-palette-kbd-sm">Shift</kbd>+<kbd className="cmd-palette-kbd-sm">K</kbd> command palette
+        </p>
       </div>
     </div>
   );
@@ -296,6 +483,7 @@ function AlertCard({
   onCreateIncident,
   onCopy,
   copied,
+  onFavToggle,
 }: {
   alert: Alert;
   expanded: boolean;
@@ -304,9 +492,20 @@ function AlertCard({
   onCreateIncident: () => void;
   onCopy: (text: string) => void;
   copied: boolean;
+  onFavToggle?: () => void;
 }) {
   const t = alert.triage;
   const isLoading = alert.status === "triaging";
+
+  const favItem: FavoriteItem = {
+    id: alert.id,
+    type: "alert",
+    title: t?.summary || alert.raw.slice(0, 80),
+    priority: t?.priority,
+    category: t?.category,
+    timestamp: alert.timestamp,
+    snippet: t?.slackSummary || alert.raw.slice(0, 200),
+  };
 
   return (
     <div
@@ -350,7 +549,10 @@ function AlertCard({
             {t?.summary || alert.raw.slice(0, 100)}
           </p>
         </div>
-        <span className="text-gray-600 ml-2 text-xs">{expanded ? "▲" : "▼"}</span>
+        <div className="flex items-center gap-1 ml-2">
+          {t && <FavoriteButton item={favItem} size="sm" onToggle={onFavToggle ? () => onFavToggle() : undefined} />}
+          <span className="text-gray-600 text-xs">{expanded ? "▲" : "▼"}</span>
+        </div>
       </div>
 
       {/* Expanded */}
@@ -470,12 +672,24 @@ function IncidentCard({
   incident,
   onCopy,
   copied,
+  onFavToggle,
 }: {
   incident: Incident;
   onCopy: (text: string) => void;
   copied: boolean;
+  onFavToggle?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
+
+  const favItem: FavoriteItem = {
+    id: incident.id,
+    type: "incident",
+    title: incident.title,
+    priority: incident.priority,
+    category: incident.category,
+    timestamp: incident.createdAt,
+    snippet: incident.summary,
+  };
 
   return (
     <div className="card">
@@ -497,9 +711,12 @@ function IncidentCard({
             Created {timeAgo(incident.createdAt)}
           </p>
         </div>
-        <span className="text-gray-600 ml-2 text-xs">
-          {expanded ? "▲" : "▼"}
-        </span>
+        <div className="flex items-center gap-1 ml-2">
+          <FavoriteButton item={favItem} size="sm" onToggle={onFavToggle ? () => onFavToggle() : undefined} />
+          <span className="text-gray-600 text-xs">
+            {expanded ? "▲" : "▼"}
+          </span>
+        </div>
       </div>
 
       {expanded && (
