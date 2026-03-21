@@ -4,6 +4,8 @@ import type { FavoriteItem } from "../shared/favorites";
 import { generateId, priorityBadge, copyToClipboard } from "../shared/utils";
 import { ThemeToggle } from "../ui/ThemeToggle";
 import { FavoriteButton } from "../ui/FavoriteButton";
+import { ApiErrorFallback } from "../ui/ApiErrorFallback";
+import { ExportMenu } from "../ui/ExportMenu";
 
 export function Popup() {
   const [alertText, setAlertText] = useState("");
@@ -105,9 +107,10 @@ export function Popup() {
 
       {/* Error */}
       {error && (
-        <div className="card border-red-500/30 bg-red-950/30 text-red-400 text-xs p-3">
-          {error}
-        </div>
+        <ApiErrorFallback
+          error={error}
+          onRetry={handleTriage}
+        />
       )}
 
       {/* Result */}
@@ -159,6 +162,10 @@ export function Popup() {
             >
               {copied ? "Copied!" : "Copy Slack Summary"}
             </button>
+            <ExportMenu
+              data={{ type: "triage", result, alertRaw: alertText }}
+              size="sm"
+            />
             <button
               className="btn-primary text-xs flex-1"
               onClick={openSidePanel}

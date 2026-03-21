@@ -12,6 +12,8 @@ import { ThemeToggle } from "../ui/ThemeToggle";
 import { OnboardingTour } from "../ui/OnboardingTour";
 import { CommandPalette, type PaletteCommand } from "../ui/CommandPalette";
 import { FavoriteButton } from "../ui/FavoriteButton";
+import { ApiErrorFallback } from "../ui/ApiErrorFallback";
+import { ExportMenu } from "../ui/ExportMenu";
 
 type Tab = "inbox" | "incidents" | "favorites";
 
@@ -24,6 +26,7 @@ export function SidePanel() {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [favCount, setFavCount] = useState(0);
   const [favItems, setFavItems] = useState<FavoriteItem[]>([]);
+  const [apiErrors, setApiErrors] = useState<Record<string, string>>({});
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Listen for triage results
@@ -44,6 +47,10 @@ export function SidePanel() {
             a.id === msg.payload.alertId ? { ...a, status: "pending" } : a
           )
         );
+        setApiErrors((prev) => ({
+          ...prev,
+          [msg.payload.alertId]: msg.payload.error,
+        }));
       }
     };
     chrome.runtime.onMessage.addListener(listener);
@@ -376,11 +383,19 @@ export function SidePanel() {
                         expandedAlert === alert.id ? null : alert.id
                       )
                     }
-                    onRetriage={() => triageAlert(alert)}
+                    onRetriage={() => {
+                      setApiErrors((prev) => {
+                        const next = { ...prev };
+                        delete next[alert.id];
+                        return next;
+                      });
+                      triageAlert(alert);
+                    }}
                     onCreateIncident={() => createIncident(alert)}
                     onCopy={(text) => handleCopy(text, alert.id)}
                     copied={copiedId === alert.id}
                     onFavToggle={refreshFavorites}
+                    apiError={apiErrors[alert.id]}
                   />
                 ))}
               </div>
@@ -484,6 +499,7 @@ function AlertCard({
   onCopy,
   copied,
   onFavToggle,
+  apiError,
 }: {
   alert: Alert;
   expanded: boolean;
@@ -493,6 +509,7 @@ function AlertCard({
   onCopy: (text: string) => void;
   copied: boolean;
   onFavToggle?: () => void;
+  apiError?: string;
 }) {
   const t = alert.triage;
   const isLoading = alert.status === "triaging";
@@ -554,6 +571,13 @@ function AlertCard({
           <span className="text-gray-600 text-xs">{expanded ? "▲" : "▼"}</span>
         </div>
       </div>
+
+      {/* API Error */}
+      {apiError && !isLoading && (
+        <div className="mt-2">
+          <ApiErrorFallback error={apiError} onRetry={onRetriage} />
+        </div>
+      )}
 
       {/* Expanded */}
       {expanded && t && (
@@ -632,6 +656,10 @@ function AlertCard({
             >
               {copied ? "Copied!" : "Copy Slack Summary"}
             </button>
+            <ExportMenu
+              data={{ type: "triage", result: t, alertRaw: alert.raw }}
+              size="sm"
+            />
             {alert.status !== "incident_created" && (
               <button
                 className="btn-primary text-xs flex-1"
@@ -759,15 +787,21 @@ function IncidentCard({
             </pre>
           </div>
 
-          <button
-            className="btn-secondary text-xs w-full"
-            onClick={(e) => {
-              e.stopPropagation();
-              onCopy(incident.summary);
-            }}
-          >
-            {copied ? "Copied!" : "Copy Slack Summary"}
-          </button>
+          <div className="flex gap-2">
+            <button
+              className="btn-secondary text-xs flex-1"
+              onClick={(e) => {
+                e.stopPropagation();
+                onCopy(incident.summary);
+              }}
+            >
+              {copied ? "Copied!" : "Copy Slack Summary"}
+            </button>
+            <ExportMenu
+              data={{ type: "incident", incident }}
+              size="sm"
+            />
+          </div>
         </div>
       )}
     </div>
