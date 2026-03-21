@@ -6,6 +6,8 @@ import {
   timeAgo,
   copyToClipboard,
 } from "../shared/utils";
+import { ThemeToggle } from "../ui/ThemeToggle";
+import { OnboardingTour } from "../ui/OnboardingTour";
 
 type Tab = "inbox" | "incidents";
 
@@ -139,23 +141,28 @@ export function SidePanel() {
 
   return (
     <div className="h-screen flex flex-col">
+      <OnboardingTour />
       {/* Header */}
-      <div className="bg-gray-900 border-b border-gray-800 px-4 py-3">
+      <div className="header-bar px-4 py-3">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-red-600 rounded-lg flex items-center justify-center text-white font-bold text-xs">
               AT
             </div>
-            <h1 className="text-sm font-bold text-white">AI Alert Triage</h1>
+            <h1 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>AI Alert Triage</h1>
           </div>
-          {alerts.length > 0 && (
-            <button
-              onClick={clearAll}
-              className="text-[10px] text-gray-500 hover:text-gray-400"
-            >
-              Clear all
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            {alerts.length > 0 && (
+              <button
+                onClick={clearAll}
+                className="text-[10px]"
+                style={{ color: "var(--text-muted)" }}
+              >
+                Clear all
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Stats bar */}

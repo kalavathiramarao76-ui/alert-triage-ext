@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import type { TriageResult, MessageType } from "../shared/types";
 import { generateId, priorityBadge, copyToClipboard } from "../shared/utils";
+import { ThemeToggle } from "../ui/ThemeToggle";
 
 export function Popup() {
   const [alertText, setAlertText] = useState("");
@@ -58,16 +59,19 @@ export function Popup() {
             AT
           </div>
           <div>
-            <h1 className="text-sm font-bold text-white">AI Alert Triage</h1>
-            <p className="text-xs text-gray-500">Quick classification</p>
+            <h1 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>AI Alert Triage</h1>
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Quick classification</p>
           </div>
         </div>
-        <button
-          onClick={openSidePanel}
-          className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-        >
-          Open Full Panel &rarr;
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            onClick={openSidePanel}
+            className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+          >
+            Open Full Panel &rarr;
+          </button>
+        </div>
       </div>
 
       {/* Input */}
