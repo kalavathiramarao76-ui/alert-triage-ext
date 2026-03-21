@@ -6,7 +6,7 @@ import "../shared/styles.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ErrorBoundary fallbackTitle="TriageFlow AI Panel Crashed">
+    <ErrorBoundary fallbackTitle="IncidentIQ Panel Crashed">
       <SidePanel />
     </ErrorBoundary>
   </React.StrictMode>

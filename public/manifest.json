@@ -1,9 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "TriageFlow AI — Alert Triage & Incident Classifier",
-  "short_name": "TriageFlow AI",
+  "name": "IncidentIQ \u2014 Alert Triage & Incident Classifier",
+  "short_name": "IncidentIQ",
   "version": "1.0.0",
-  "description": "AI alert triage: classify priority (P0-P4), detect noise & automate escalation. Free DevOps Chrome extension for SREs.",
+  "description": "AI alert triage: classify priority P0-P4, detect noise & automate escalation. Free DevOps Chrome extension for SREs.",
   "permissions": [
     "sidePanel",
     "activeTab",
@@ -35,8 +35,12 @@
         "https://*.opsgenie.com/*",
         "https://app.opsgenie.com/*"
       ],
-      "js": ["content.js"],
-      "css": ["assets/content.css"]
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "assets/content.css"
+      ]
     }
   ],
   "declarative_net_request": {

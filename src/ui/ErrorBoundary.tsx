@@ -21,7 +21,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error("[TriageFlow AI] Crash:", error, info.componentStack);
+    console.error("[IncidentIQ] Crash:", error, info.componentStack);
   }
 
   handleRetry = () => {
@@ -44,7 +44,7 @@ export class ErrorBoundary extends Component<Props, State> {
               {this.props.fallbackTitle || "Something went wrong"}
             </h2>
             <p className="error-boundary-desc">
-              TriageFlow AI encountered an unexpected error. Your data is safe.
+              IncidentIQ encountered an unexpected error. Your data is safe.
             </p>
             {this.state.error && (
               <pre className="error-boundary-detail">

@@ -6,7 +6,7 @@ import "../shared/styles.css";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <ErrorBoundary fallbackTitle="TriageFlow AI Popup Crashed">
+    <ErrorBoundary fallbackTitle="IncidentIQ Popup Crashed">
       <Popup />
     </ErrorBoundary>
   </React.StrictMode>
