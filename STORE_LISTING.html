@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IncidentIQ - AI Alert Triage | Chrome Web Store</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{--accent:#ef4444;--accent-dark:#dc2626;--bg:#0f0a0a;--card:#1a1212;--card-border:#2d1f1f;--text:#e7e0e0;--text-muted:#a89595}
+  body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+  .container{max-width:1100px;margin:0 auto;padding:0 24px}
+
+  .hero{text-align:center;padding:80px 24px 60px;background:linear-gradient(180deg,#1a0f0f 0%,var(--bg) 100%);position:relative;overflow:hidden}
+  .hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 50% 50%,rgba(239,68,68,.08) 0%,transparent 50%);pointer-events:none}
+  .hero-icon{width:88px;height:88px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));border-radius:22px;display:flex;align-items:center;justify-content:center;font-size:42px;margin:0 auto 24px;box-shadow:0 8px 32px rgba(239,68,68,.3)}
+  .hero h1{font-size:48px;font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,#fff,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .hero .tagline{font-size:20px;color:var(--text-muted);margin:12px 0 8px;font-weight:500}
+  .hero .store-desc{font-size:15px;color:var(--text-muted);max-width:620px;margin:0 auto 28px}
+  .badge{display:inline-block;background:var(--accent);color:#fff;padding:6px 18px;border-radius:20px;font-size:13px;font-weight:600;letter-spacing:.5px}
+
+  .section{padding:60px 24px}
+  .section-title{text-align:center;font-size:32px;font-weight:700;margin-bottom:12px}
+  .section-sub{text-align:center;color:var(--text-muted);margin-bottom:40px;font-size:15px}
+
+  .tools-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;max-width:1100px;margin:0 auto}
+  .tool-card{background:var(--card);border:1px solid var(--card-border);border-radius:16px;padding:28px;transition:transform .2s,box-shadow .2s}
+  .tool-card:hover{transform:translateY(-4px);box-shadow:0 8px 24px rgba(239,68,68,.15)}
+  .tool-card .icon{font-size:32px;margin-bottom:12px}
+  .tool-card h3{font-size:17px;font-weight:700;margin-bottom:6px;color:#fff}
+  .tool-card p{font-size:13px;color:var(--text-muted);line-height:1.5}
+  .tool-card .tags{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+  .tool-card .tag{background:rgba(239,68,68,.12);color:var(--accent);padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600}
+
+  .flow{display:flex;align-items:flex-start;justify-content:center;gap:0;max-width:1000px;margin:0 auto;flex-wrap:wrap}
+  .flow-step{text-align:center;flex:1;min-width:160px;max-width:200px;position:relative;padding:0 10px}
+  .flow-step:not(:last-child)::after{content:'';position:absolute;top:28px;right:-10px;width:20px;height:2px;background:var(--accent);opacity:.5}
+  .flow-num{width:56px;height:56px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;margin:0 auto 14px;color:#fff}
+  .flow-step h4{font-size:14px;font-weight:700;margin-bottom:4px;color:#fff}
+  .flow-step p{font-size:12px;color:var(--text-muted)}
+
+  .mock-section{display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:1000px;margin:0 auto}
+  .mock{background:#1e1414;border:1px solid var(--card-border);border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.3)}
+  .mock-bar{background:#150f0f;padding:8px 14px;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted)}
+  .mock-dot{width:8px;height:8px;border-radius:50%}
+  .mock-dot.r{background:#ef4444}.mock-dot.y{background:#eab308}.mock-dot.g{background:#22c55e}
+  .mock-body{padding:18px}
+  .mock-label{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+  .mock-pill{background:rgba(239,68,68,.15);color:var(--accent);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600}
+  .mock-line{height:8px;border-radius:4px;background:rgba(255,255,255,.06)}
+  .mock-line.w60{width:60%}.mock-line.w80{width:80%}.mock-line.w45{width:45%}.mock-line.w70{width:70%}
+  .mock-btn{background:var(--accent);color:#fff;border:none;padding:6px 16px;border-radius:8px;font-size:11px;font-weight:600;margin-top:8px}
+
+  .priority-bar{display:flex;gap:6px;margin-bottom:12px}
+  .p-badge{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:700;color:#fff}
+  .p-badge.p0{background:#dc2626}.p-badge.p1{background:#ea580c}.p-badge.p2{background:#d97706}.p-badge.p3{background:#2563eb}.p-badge.p4{background:#6b7280}
+
+  .features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;max-width:900px;margin:0 auto}
+  .feat{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--card-border);border-radius:12px;padding:16px}
+  .feat .fi{font-size:22px;flex-shrink:0}
+  .feat h4{font-size:14px;font-weight:700;color:#fff;margin-bottom:2px}
+  .feat p{font-size:12px;color:var(--text-muted)}
+
+  .release{max-width:700px;margin:0 auto}
+  .release-item{border-left:3px solid var(--accent);padding:12px 20px;margin-bottom:16px;background:var(--card);border-radius:0 12px 12px 0}
+  .release-item .ver{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:4px}
+  .release-item p{font-size:13px;color:var(--text-muted)}
+
+  .store-listing{background:#150f0f;border:2px solid var(--card-border);border-radius:16px;padding:36px;max-width:800px;margin:0 auto}
+  .store-listing h3{font-size:18px;font-weight:700;margin-bottom:16px;color:var(--accent)}
+  .store-listing ul{list-style:none;padding:0}
+  .store-listing li{padding:6px 0;font-size:14px;color:var(--text-muted);border-bottom:1px solid rgba(255,255,255,.04)}
+  .store-listing li::before{content:'✓ ';color:var(--accent);font-weight:700}
+  .copy-hint{text-align:center;margin-top:16px;font-size:12px;color:var(--text-muted);opacity:.6}
+
+  @media(max-width:768px){
+    .tools-grid,.mock-section,.features-grid{grid-template-columns:1fr}
+    .hero h1{font-size:32px}
+    .flow{flex-direction:column;align-items:center}
+    .flow-step::after{display:none}
+  }
+</style>
+</head>
+<body>
+
+<section class="hero">
+  <div class="hero-icon">&#128680;</div>
+  <h1>IncidentIQ</h1>
+  <p class="tagline">AI Alert Triage</p>
+  <p class="store-desc">AI-powered alert triage for SREs. Classify incidents, detect noise, get root cause analysis, and escalation paths in seconds.</p>
+  <span class="badge">CHROME EXTENSION</span>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">Triage Alerts in Seconds, Not Minutes</h2>
+    <p class="section-sub">AI-powered classification, root cause analysis, and escalation paths for every alert.</p>
+    <div class="tools-grid">
+      <div class="tool-card">
+        <div class="icon">&#127919;</div>
+        <h3>Priority Classification</h3>
+        <p>Instantly classify alerts from P0 (critical) to P4 (informational) with AI confidence scoring.</p>
+        <div class="tags"><span class="tag">P0</span><span class="tag">P1</span><span class="tag">P2</span><span class="tag">P3</span><span class="tag">P4</span></div>
+      </div>
+      <div class="tool-card">
+        <div class="icon">&#128263;</div>
+        <h3>Noise Detection</h3>
+        <p>Identify noisy, duplicate, and low-signal alerts before they waste your time.</p>
+        <div class="tags"><span class="tag">Duplicate</span><span class="tag">Flapping</span><span class="tag">Low Signal</span></div>
+      </div>
+      <div class="tool-card">
+        <div class="icon">&#128269;</div>
+        <h3>Root Cause Analysis</h3>
+        <p>AI analyzes alert context and suggests probable root causes and contributing factors.</p>
+        <div class="tags"><span class="tag">Probable Cause</span><span class="tag">Contributing Factors</span></div>
+      </div>
+      <div class="tool-card">
+        <div class="icon">&#128200;</div>
+        <h3>Escalation Paths</h3>
+        <p>Get recommended team, Slack channel, and runbook for each classified incident.</p>
+        <div class="tags"><span class="tag">Team</span><span class="tag">Channel</span><span class="tag">Runbook</span></div>
+      </div>
+      <div class="tool-card">
+        <div class="icon">&#128172;</div>
+        <h3>Slack Summaries</h3>
+        <p>Generate Slack-ready incident summaries with priority, impact, and action items.</p>
+        <div class="tags"><span class="tag">Formatted</span><span class="tag">Copy-Paste</span></div>
+      </div>
+      <div class="tool-card">
+        <div class="icon">&#128268;</div>
+        <h3>Platform Injection</h3>
+        <p>Inject triage results directly into PagerDuty and OpsGenie incident pages.</p>
+        <div class="tags"><span class="tag">PagerDuty</span><span class="tag">OpsGenie</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:linear-gradient(180deg,rgba(239,68,68,.04),transparent)">
+  <div class="container">
+    <h2 class="section-title">How It Works</h2>
+    <p class="section-sub">From raw alert to actionable triage in 4 steps.</p>
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <h4>Paste or Extract</h4>
+        <p>Paste alert text or auto-extract from PagerDuty / OpsGenie page</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <h4>AI Classifies</h4>
+        <p>AI analyzes alert content, severity signals, and context</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <h4>Get Triage</h4>
+        <p>Priority + Category + Root Cause + Recommended Actions</p>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <h4>Export &amp; Share</h4>
+        <p>Copy Slack summary, inject into PagerDuty, or export report</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">See It In Action</h2>
+    <p class="section-sub">Purpose-built for incident responders.</p>
+    <div class="mock-section">
+      <div class="mock">
+        <div class="mock-bar"><span class="mock-dot r"></span><span class="mock-dot y"></span><span class="mock-dot g"></span>&nbsp; IncidentIQ &mdash; Triage</div>
+        <div class="mock-body">
+          <div class="mock-label">Alert Input</div>
+          <div style="background:rgba(255,255,255,.03);border-radius:8px;padding:10px;margin-bottom:14px">
+            <div class="mock-line w80" style="margin-bottom:6px"></div>
+            <div class="mock-line w60" style="margin-bottom:6px"></div>
+            <div class="mock-line w70"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:10px">
+            <button class="mock-btn">Classify Alert</button>
+            <button class="mock-btn" style="background:transparent;border:1px solid var(--accent);color:var(--accent)">Auto-Extract</button>
+          </div>
+        </div>
+      </div>
+      <div class="mock">
+        <div class="mock-bar"><span class="mock-dot r"></span><span class="mock-dot y"></span><span class="mock-dot g"></span>&nbsp; Triage Result</div>
+        <div class="mock-body">
+          <div class="mock-label">Classification</div>
+          <div class="priority-bar">
+            <span class="p-badge p0">P0 CRITICAL</span>
+            <span class="mock-pill">Infrastructure</span>
+          </div>
+          <div class="mock-label" style="margin-top:12px">Root Cause</div>
+          <div class="mock-line w80" style="margin-bottom:6px"></div>
+          <div class="mock-line w60" style="margin-bottom:10px"></div>
+          <div class="mock-label">Escalation</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <span class="mock-pill">Team: SRE-Platform</span>
+            <span class="mock-pill">#incidents-p0</span>
+            <span class="mock-pill">runbook/db-failover</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:linear-gradient(180deg,rgba(239,68,68,.04),transparent)">
+  <div class="container">
+    <h2 class="section-title">Feature Highlights</h2>
+    <p class="section-sub">Everything an on-call engineer needs.</p>
+    <div class="features-grid">
+      <div class="feat"><span class="fi">&#9889;</span><div><h4>Instant Classification</h4><p>P0-P4 priority with AI confidence scoring in under 3 seconds.</p></div></div>
+      <div class="feat"><span class="fi">&#128263;</span><div><h4>Noise Filtering</h4><p>Automatically detect flapping, duplicate, and low-signal alerts.</p></div></div>
+      <div class="feat"><span class="fi">&#128269;</span><div><h4>Root Cause Analysis</h4><p>AI-powered probable cause identification with contributing factors.</p></div></div>
+      <div class="feat"><span class="fi">&#128172;</span><div><h4>Slack-Ready Summaries</h4><p>One-click formatted incident summaries for Slack channels.</p></div></div>
+      <div class="feat"><span class="fi">&#128268;</span><div><h4>PagerDuty Integration</h4><p>Inject triage results directly into PagerDuty incident pages.</p></div></div>
+      <div class="feat"><span class="fi">&#128736;</span><div><h4>OpsGenie Integration</h4><p>Inject triage results into OpsGenie alert detail pages.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">What's New</h2>
+    <p class="section-sub">Latest updates and improvements.</p>
+    <div class="release">
+      <div class="release-item"><div class="ver">v1.2.0 &mdash; Latest</div><p>Added OpsGenie injection support. Improved noise detection accuracy. Slack summary formatting enhancements.</p></div>
+      <div class="release-item"><div class="ver">v1.1.0</div><p>PagerDuty auto-extraction. Escalation path recommendations with runbook links. Root cause confidence scoring.</p></div>
+      <div class="release-item"><div class="ver">v1.0.0</div><p>Initial release with P0-P4 classification, noise detection, root cause analysis, and Slack summaries.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="background:linear-gradient(180deg,rgba(239,68,68,.06),transparent)">
+  <div class="container">
+    <h2 class="section-title">Chrome Web Store Listing</h2>
+    <p class="section-sub">Copy-paste ready feature list for your store description.</p>
+    <div class="store-listing">
+      <h3>Feature List</h3>
+      <ul>
+        <li>AI-powered alert triage with P0-P4 priority classification</li>
+        <li>Noise detection to filter flapping, duplicate, and low-signal alerts</li>
+        <li>Root cause analysis with probable cause and contributing factors</li>
+        <li>Escalation path recommendations: team, Slack channel, and runbook</li>
+        <li>Slack-ready incident summaries with one-click copy</li>
+        <li>PagerDuty integration: auto-extract alerts and inject triage results</li>
+        <li>OpsGenie integration: auto-extract alerts and inject triage results</li>
+        <li>Alert category classification (Infrastructure, Application, Network, etc.)</li>
+        <li>Real-time AI streaming output</li>
+        <li>Export triage reports for post-incident reviews</li>
+        <li>Works on any alert text from any monitoring platform</li>
+      </ul>
+      <p class="copy-hint">Select all text above and copy for your Chrome Web Store listing</p>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>
