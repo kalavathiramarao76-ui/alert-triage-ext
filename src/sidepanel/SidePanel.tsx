@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import type { Alert, TriageResult, Incident, MessageType, Priority } from "../shared/types";
 import type { FavoriteItem } from "../shared/favorites";
 import { getFavorites, getFavoritesCount } from "../shared/favorites";
+import { incrementUsage } from "../shared/usage";
 import {
   generateId,
   priorityBadge,
@@ -85,6 +86,7 @@ export function SidePanel() {
   }, []);
 
   const triageAlert = useCallback((alert: Alert) => {
+    incrementUsage();
     setAlerts((prev) =>
       prev.map((a) => (a.id === alert.id ? { ...a, status: "triaging" } : a))
     );
